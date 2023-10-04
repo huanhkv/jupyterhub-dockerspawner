@@ -1,0 +1,41 @@
+version: '3'
+services:
+  hub:
+    image: jupyterhub/jupyterhub
+    container_name: jupyterhub
+    ports:
+      - 8000:8000
+    build:
+      context: ./hub
+      dockerfile: Dockerfile
+    volumes:
+      - ./hub/jupyterhub_config.py:/srv/jupyterhub/jupyterhub_config.py
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /etc/group:/etc/group:ro
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/shadow:/etc/shadow:ro
+    depends_on: 
+      - db
+    networks:
+      - jupyterhub
+  db:
+    image: mysql
+    container_name: jupyterhub_mysql
+    volumes:
+      - mysql-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: jupyterhub_db
+    networks:
+      - jupyterhub
+  lab:
+    image: custom_notebook
+    build:
+      context: ./lab
+      dockerfile: Dockerfile
+    command: echo
+volumes:
+  mysql-data:
+networks:
+  jupyterhub:
+    name: jupyterhub
